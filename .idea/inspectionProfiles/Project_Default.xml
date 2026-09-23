@@ -1,0 +1,35 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="raccoon" />
+          <option value="black" />
+          <option value="click" />
+          <option value="fastapi" />
+          <option value="httpx" />
+          <option value="jinja2" />
+          <option value="jinja2-time" />
+          <option value="lcm" />
+          <option value="libcst" />
+          <option value="paramiko" />
+          <option value="pydantic" />
+          <option value="pyftpsync" />
+          <option value="pytest-asyncio" />
+          <option value="pyyaml" />
+          <option value="questionary" />
+          <option value="raccoon-stubs" />
+          <option value="raccoon-transport" />
+          <option value="rich" />
+          <option value="ruamel-yaml" />
+          <option value="setuptools" />
+          <option value="uvicorn" />
+          <option value="websocket-client" />
+          <option value="websockets" />
+          <option value="wheel" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
