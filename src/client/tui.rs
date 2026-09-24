@@ -52,7 +52,10 @@ pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Re
                 Event::Key(key) => {
                     match key.code {
                         KeyCode::Char(c) => {
-                            state.lock().unwrap().input.push(c);
+                            let mut state = state.lock().unwrap();
+                            if state.input.len() < crate::MAX_MESSAGE_LEN {
+                                state.input.push(c);
+                            }
                         }
                         KeyCode::Backspace => {
                             state.lock().unwrap().input.pop();
@@ -117,8 +120,12 @@ pub fn render_tui(frame: &mut ratatui::Frame, state: &AppState) {
         areas[0]
     );
 
+    let visible_height = areas[1].height.saturating_sub(2) as usize;
+    let start = msg_lines.len().saturating_sub(visible_height);
+    let visible_lines = msg_lines[start..].to_vec();
+
     frame.render_widget(
-        Paragraph::new(msg_lines)
+        Paragraph::new(visible_lines)
             .block(ratatui::widgets::Block::bordered().title("Messages")),
         areas[1]
     );

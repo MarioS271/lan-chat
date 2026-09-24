@@ -15,6 +15,7 @@ use types::message::Message;
 use types::modes::Modes;
 
 pub const DEFAULT_PORT: u16 = 42003;
+pub const MAX_MESSAGE_LEN: usize = 512;
 
 fn main() {
     let mut args = std::env::args();
