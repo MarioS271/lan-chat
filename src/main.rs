@@ -3,17 +3,18 @@
 //!
 //! Authors: MarioS271
 
-mod server;
-mod types;
-mod helpers;
-mod framing;
 mod client;
-mod print;
+mod types;
+mod framing;
+mod helpers;
+mod server;
 
-use crate::client::run_client;
-use crate::server::run_server;
-use crate::types::message::Message;
+use client::client::run_client;
+use server::run_server;
+use types::message::Message;
 use types::modes::Modes;
+
+pub const DEFAULT_PORT: u16 = 42003;
 
 fn main() {
     let mut args = std::env::args();
@@ -46,22 +47,16 @@ fn main() {
         }
     };
 
-    if ip_and_or_port_arg.is_empty() {
-        eprintln!("Error: no port given");
-        std::process::exit(1);
-    }
-
     if let Err(e) = match mode {
         Modes::Client => {
-            run_client(&ip_and_or_port_arg)
-        },
+            let address = match ip_and_or_port_arg.contains(":") {
+                true => ip_and_or_port_arg.as_str(),
+                false => &format!("{}:{}", ip_and_or_port_arg, DEFAULT_PORT)
+            };
+            run_client(address)
+        }
         Modes::Server => {
-            let port = ip_and_or_port_arg.parse::<u16>().unwrap_or_else(
-                |_| {
-                    eprintln!("Error: could not parse given port number");
-                    std::process::exit(1);
-                }
-            );
+            let port = ip_and_or_port_arg.parse::<u16>().unwrap_or(DEFAULT_PORT);
             run_server(port)
         }
     } {
@@ -72,7 +67,7 @@ fn main() {
 
 fn print_help_and_exit() -> ! {
     println!("lan-chat – A simple CLI LAN messenger");
-    println!("Message Version: {}", Message::MESSAGE_VERSION);
+    println!("Message Version: {}\n", Message::MESSAGE_VERSION);
 
     println!("Usage: lan-chat <flag> <port|ip:port>");
     println!("  -h --help: Print this message");

@@ -43,6 +43,12 @@ impl SessionInfo {
             }
         }
     }
+
+    pub fn name_as_str(&self) -> &str {
+        std::str::from_utf8(&self.name)
+            .unwrap_or("?")
+            .trim_end_matches('\0')
+    }
 }
 impl Default for SessionInfo {
     fn default() -> Self {
