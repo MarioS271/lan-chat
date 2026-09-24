@@ -13,6 +13,7 @@ pub struct SessionInfo {
 impl SessionInfo {
     pub const MAX_NAME_LEN: usize = 32;
 
+    // TODO: dotfile
     pub fn read_in_name(&mut self) -> std::io::Result<()> {
         let name = ask_for_input("Enter your name")?;
         let bytes = name.trim().as_bytes();
