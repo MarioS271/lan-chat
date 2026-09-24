@@ -12,7 +12,7 @@ pub enum Message {
     System(SystemMessage)
 }
 impl Message {
-    const TYPE_BYTES: usize = 1;
+    pub const TYPE_BYTES: usize = 1;
 
     const TYPE_CHAT_U8: u8 = 0;
     const TYPE_SYSTEM_U8: u8 = 1;

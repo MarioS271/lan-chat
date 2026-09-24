@@ -32,6 +32,7 @@ impl SessionInfo {
         std::str::from_utf8(&self.name)
             .unwrap_or("?")
             .trim_end_matches('\0')
+            .trim_end()
     }
 }
 impl Default for SessionInfo {

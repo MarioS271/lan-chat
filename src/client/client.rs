@@ -5,6 +5,7 @@
 
 use crate::client::tui::init_tui;
 use crate::types::session_info::SessionInfo;
+use std::io::{Read, Write};
 use std::net::TcpStream;
 
 pub fn run_client(address: &str) -> std::io::Result<()> {
@@ -15,10 +16,23 @@ pub fn run_client(address: &str) -> std::io::Result<()> {
 
     println!("Attempting to connect to {}", address);
 
-    let stream = TcpStream::connect(address)?;
+    let mut stream = TcpStream::connect(address)?;
     stream.set_nodelay(true)?;
 
     println!("Successfully connected to {}", stream.peer_addr()?);
+
+    let mut server_version = [0u8; 2];
+    stream.read_exact(&mut server_version)?;
+
+    if u16::from_be_bytes(server_version) != crate::PROTOCOL_VERSION {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Unsupported,
+            "This client is incompatible with the server's protocol version"
+        ));
+    }
+
+    stream.write_all(&crate::PROTOCOL_VERSION.to_be_bytes())?;
+    stream.write_all(&session_info.name)?;
 
     init_tui(session_info, stream)?;
     Ok(())
