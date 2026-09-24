@@ -3,6 +3,8 @@
 //!
 //! Authors: MarioS271
 
+use std::io::Write;
+
 pub fn get_timestamp() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -11,7 +13,8 @@ pub fn get_timestamp() -> u64 {
 }
 
 pub fn ask_for_input(prompt: &str) -> std::io::Result<String> {
-    print!("{}\n > ", prompt);
+    print!("{}\n> ", prompt);
+    std::io::stdout().flush()?;
 
     let stdin = std::io::stdin();
     let mut result = String::new();

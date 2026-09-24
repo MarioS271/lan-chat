@@ -5,13 +5,15 @@
 
 use crate::types::message::Message;
 use crate::types::session_info::SessionInfo;
+use std::io::Write;
 use std::net::TcpStream;
 
 pub fn run_client(address: &str) -> std::io::Result<()> {
+    println!("Running as client");
+
     let mut session_info = SessionInfo::default();
     session_info.read_in_name()?;
 
-    println!("Running as client");
     println!("Attempting to connect to {}", address);
 
     let stream = TcpStream::connect(address)?;
@@ -24,20 +26,23 @@ pub fn run_client(address: &str) -> std::io::Result<()> {
     let read_stream = stream.try_clone()?;
     let write_stream = stream;
 
+    let session_info_clone = session_info.clone();
     std::thread::spawn(move || {
-        receive_thread(read_stream);
+        receive_thread(session_info_clone, read_stream);
     });
 
-    main_thread(session_info, write_stream);
+    send_thread(session_info, write_stream);
     Ok(())
 }
 
-fn main_thread(session_info: SessionInfo, mut stream: TcpStream) {
+fn send_thread(session_info: SessionInfo, mut stream: TcpStream) {
     let stdin = std::io::stdin();
     let mut input = String::new();
 
     loop {
         input.clear();
+
+        draw_prompt(&session_info);
 
         match stdin.read_line(&mut input) {
             Ok(0) => {
@@ -64,7 +69,7 @@ fn main_thread(session_info: SessionInfo, mut stream: TcpStream) {
     }
 }
 
-fn receive_thread(mut stream: TcpStream) {
+fn receive_thread(session_info: SessionInfo, mut stream: TcpStream) {
     loop {
         match crate::framing::read_message(&mut stream) {
             Ok(data) => {
@@ -76,12 +81,19 @@ fn receive_thread(mut stream: TcpStream) {
                     }
                 };
 
+                let timestamp = chrono::DateTime::from_timestamp(msg.timestamp_secs as i64, 0)
+                    .unwrap()
+                    .with_timezone(&chrono::Local)
+                    .format("%H:%M:%S");
                 let name = std::str::from_utf8(&msg.sender_name)
                     .unwrap_or("?")
                     .trim_end_matches('\0');
                 let content = String::from_utf8_lossy(&msg.content);
 
-                println!("[{}] {}: {}", msg.timestamp_secs, name, content.trim());
+                print!("\r\x1B[2K");
+                println!("[{}] {}: {}", timestamp, name, content.trim());
+
+                draw_prompt(&session_info);
             },
             Err(err) if err.kind() == std::io::ErrorKind::UnexpectedEof => {
                 println!("\nDisconnected");
@@ -93,4 +105,15 @@ fn receive_thread(mut stream: TcpStream) {
             }
         }
     }
+}
+
+fn draw_prompt(session_info: &SessionInfo) {
+    print!("{}: ", session_info.name_as_str());
+    match std::io::stdout().flush() {
+        Err(err) => {
+            eprintln!("\nError: failed to flush stdout: {}", err);
+            std::process::exit(1)
+        },
+        _ => {}
+    };
 }
