@@ -20,8 +20,6 @@ pub fn run_client(address: &str) -> std::io::Result<()> {
 
     println!("Successfully connected to {}", stream.peer_addr()?);
 
-    session_info.read_in_ip(&stream)?;
-
     init_tui(session_info, stream)?;
     Ok(())
 }

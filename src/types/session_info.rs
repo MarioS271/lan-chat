@@ -4,12 +4,10 @@
 //! Authors: MarioS271
 
 use crate::helpers::ask_for_input;
-use std::net::{Ipv4Addr, TcpStream};
 
 #[derive(Clone)]
 pub struct SessionInfo {
-    pub name: [u8; Self::MAX_NAME_LEN],
-    pub ip: Ipv4Addr
+    pub name: [u8; Self::MAX_NAME_LEN]
 }
 
 impl SessionInfo {
@@ -30,21 +28,6 @@ impl SessionInfo {
         Ok(())
     }
 
-    pub fn read_in_ip(&mut self, stream: &TcpStream) -> std::io::Result<()> {
-        match stream.local_addr()? {
-            std::net::SocketAddr::V4(addr) => {
-                self.ip = *addr.ip();
-                Ok(())
-            },
-            std::net::SocketAddr::V6(_) => {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Unsupported,
-                    "IPv6 is not supported"
-                ))
-            }
-        }
-    }
-
     pub fn name_as_str(&self) -> &str {
         std::str::from_utf8(&self.name)
             .unwrap_or("?")
@@ -54,8 +37,7 @@ impl SessionInfo {
 impl Default for SessionInfo {
     fn default() -> Self {
         Self {
-            name: [0u8; Self::MAX_NAME_LEN],
-            ip: Ipv4Addr::UNSPECIFIED
+            name: [0u8; Self::MAX_NAME_LEN]
         }
     }
 }

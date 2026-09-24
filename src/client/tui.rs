@@ -6,15 +6,17 @@
 use crate::client::receive::receive_thread;
 use crate::client::state::AppState;
 use crate::framing;
-use crate::types::message::Message;
+use crate::types::message::{ChatMessage, Formatted, Message};
 use crate::types::session_info::SessionInfo;
 use ratatui::crossterm;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::layout::Constraint;
+use ratatui::text::Line;
 use ratatui::widgets::Paragraph;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
+const MAX_MESSAGE_LEN: usize = 512;
 const LOG_PREFIX: &str = "(main thread)";
 
 pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Result<()> {
@@ -53,7 +55,7 @@ pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Re
                     match key.code {
                         KeyCode::Char(c) => {
                             let mut state = state.lock().unwrap();
-                            if state.input.len() < crate::MAX_MESSAGE_LEN {
+                            if state.input.len() < MAX_MESSAGE_LEN {
                                 state.input.push(c);
                             }
                         }
@@ -68,7 +70,7 @@ pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Re
                                 msg
                             };
                             if !input.is_empty() {
-                                let msg = Message::new(&session_info, &input);
+                                let msg = Message::Chat(ChatMessage::new(&session_info, input));
                                 if let Err(err) = framing::write_message(
                                     &mut stream,
                                     msg.serialize().as_slice()
@@ -98,20 +100,24 @@ pub fn render_tui(frame: &mut ratatui::Frame, state: &AppState) {
         Constraint::Length(3)
     ]).split(frame.area());
 
-    let msg_lines: Vec<ratatui::text::Line> = state.messages.iter().map(|msg| {
-        let timestamp = chrono::DateTime::from_timestamp(msg.timestamp_secs as i64, 0)
-            .unwrap()
-            .with_timezone(&chrono::Local)
-            .format("%H:%M:%S");
-
-        let name = std::str::from_utf8(&msg.sender_name)
-            .unwrap_or("???")
-            .trim_end_matches('\0')
-            .trim_end();
-
-        let content = String::from_utf8_lossy(&msg.content);
-
-        ratatui::text::Line::from(format!("[{}] {}: {}", timestamp, name, content.trim_end()))
+    let msg_lines: Vec<Line> = state.messages.iter().map(|msg| {
+        match msg {
+            Message::Chat(inner) => Line::from(
+                format!(
+                    "[{}] {}: {}",
+                    inner.formatted_timestamp(),
+                    inner.formatted_sender_name(),
+                    inner.formatted_content()
+                )
+            ),
+            Message::System(inner) => Line::from(
+                format!(
+                    "[{}] {}",
+                    inner.formatted_timestamp(),
+                    inner.formatted_content()
+                )
+            ),
+        }
     }).collect();
 
     frame.render_widget(

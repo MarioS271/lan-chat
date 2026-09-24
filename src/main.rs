@@ -11,11 +11,10 @@ mod server;
 
 use client::client::run_client;
 use server::run_server;
-use types::message::Message;
 use types::modes::Modes;
 
 pub const DEFAULT_PORT: u16 = 42003;
-pub const MAX_MESSAGE_LEN: usize = 512;
+pub const PROTOCOL_VERSION: u16 = 1;
 
 fn main() {
     let mut args = std::env::args();
@@ -32,7 +31,7 @@ fn main() {
     let mode = match mode_arg.as_str() {
         "-h" | "--help" => print_help_and_exit(),
         "-v" | "--version" => {
-            println!("Message Version: {}", Message::MESSAGE_VERSION);
+            println!("Protocol Version: {}", PROTOCOL_VERSION);
             std::process::exit(0);
         },
         "-c" | "--client" => Modes::Client,
@@ -68,11 +67,11 @@ fn main() {
 
 fn print_help_and_exit() -> ! {
     println!("lan-chat – A simple CLI LAN messenger");
-    println!("Message Version: {}\n", Message::MESSAGE_VERSION);
+    println!("Protocol Version: {}\n", PROTOCOL_VERSION);
 
     println!("Usage: lan-chat <flag> <port|ip:port>");
     println!("  -h --help: Print this message");
-    println!("  -v --version: Output this binary's message version");
+    println!("  -v --version: Output this build's protocol version");
     println!("  -c --client: Run this instance as a client which can connect to a server instance in the same LAN");
     println!("               You also need to supply a <ip:port> pair to be able to connect to a server.");
     println!("  -s --server: Run this instance as a server anyone in the same LAN can connect to");

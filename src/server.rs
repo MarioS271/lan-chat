@@ -33,7 +33,7 @@ fn handle_client(stream: TcpStream, clients: ClientList) {
     let write_stream = match stream.try_clone() {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("\nFailed to clone stream: {}", e);
+            eprintln!("Failed to clone stream: {}", e);
             return;
         }
     };
@@ -44,7 +44,7 @@ fn handle_client(stream: TcpStream, clients: ClientList) {
     loop {
         match crate::framing::read_message(&mut reader) {
             Ok(data) => {
-                println!("Recieved {} bytes", data.len());
+                println!("Received {} bytes", data.len());
 
                 let mut guard = clients.lock().unwrap();
 
@@ -59,7 +59,7 @@ fn handle_client(stream: TcpStream, clients: ClientList) {
                 break;
             },
             Err(err) => {
-                eprintln!("Read Error: {}", err);
+                eprintln!("Read Error (terminating Client): {}", err);
                 break;
             }
         }
