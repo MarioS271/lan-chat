@@ -3,9 +3,10 @@
 //!
 //! Authors: MarioS271
 
-use std::net::{Ipv4Addr, TcpStream};
 use crate::helpers::ask_for_input;
+use std::net::{Ipv4Addr, TcpStream};
 
+#[derive(Clone)]
 pub struct SessionInfo {
     pub name: [u8; Self::MAX_NAME_LEN],
     pub ip: Ipv4Addr

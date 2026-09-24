@@ -46,14 +46,9 @@ fn handle_client(stream: TcpStream, clients: ClientList) {
             Ok(data) => {
                 println!("Recieved {} bytes", data.len());
 
-                let sender_addr = reader.peer_addr().ok();
                 let mut guard = clients.lock().unwrap();
 
                 for client in guard.iter_mut() {
-                    if client.peer_addr().ok() == sender_addr {
-                        continue;
-                    }
-                    
                     if let Err(err) = crate::framing::write_message(client, &data) {
                         eprintln!("Broadcast Write Error: {}", err);
                     }
