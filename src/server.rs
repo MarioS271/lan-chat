@@ -6,10 +6,12 @@
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 
+// TODO: kick zombie clients
+
 type ClientList = Arc<Mutex<Vec<TcpStream>>>;
 
 pub fn run_server(port: u16) -> std::io::Result<()> {
-    println!("Running as server on port {}\n", port);
+    println!("Running as server on port {}", port);
 
     let listener = TcpListener::bind(("0.0.0.0", port))?;
     let clients: ClientList = Arc::new(Mutex::new(Vec::new()));
@@ -31,7 +33,7 @@ fn handle_client(stream: TcpStream, clients: ClientList) {
     let write_stream = match stream.try_clone() {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("Failed to clone stream: {}", e);
+            eprintln!("\nFailed to clone stream: {}", e);
             return;
         }
     };

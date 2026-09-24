@@ -9,7 +9,7 @@ use std::net::Ipv4Addr;
 
 pub struct Message {
     pub timestamp_secs: u64,
-    pub sender_name: [u8; 32],
+    pub sender_name: [u8; SessionInfo::MAX_NAME_LEN],
     pub sender_ip: Ipv4Addr,
     pub content: Vec<u8>
 }
@@ -21,7 +21,7 @@ impl Message {
 
     const VERSION_BYTES: usize = 2;
     const TIMESTAMP_BYTES: usize = 8;
-    const SENDER_NAME_BYTES: usize = 32;
+    const SENDER_NAME_BYTES: usize = SessionInfo::MAX_NAME_LEN;
     const SENDER_IP_BYTES: usize = 4;
 
     const VERSION_OFFSET: usize = 0;
@@ -30,13 +30,17 @@ impl Message {
     const SENDER_IP_OFFSET: usize = Self::SENDER_NAME_OFFSET + Self::SENDER_NAME_BYTES;
     const CONTENT_OFFSET: usize = Self::SENDER_IP_OFFSET + Self::SENDER_IP_BYTES;
 
-    pub fn new(session_info: &SessionInfo, content: String) -> Self {
-        Self {
+    pub fn new(session_info: &SessionInfo, content: &str) -> Self {
+        let mut message = Self {
             timestamp_secs: helpers::get_timestamp(),
             sender_name: session_info.name,
             sender_ip: session_info.ip,
-            content: content.into_bytes(),
-        }
+            content: Vec::new(),
+        };
+
+        message.content.extend_from_slice(content.as_bytes());
+
+        message
     }
 
     pub fn serialize(&self) -> Vec<u8> {

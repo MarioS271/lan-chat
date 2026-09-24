@@ -3,17 +3,17 @@
 //!
 //! Authors: MarioS271
 
-mod modes;
 mod server;
 mod types;
 mod helpers;
 mod framing;
 mod client;
+mod print;
 
 use crate::client::run_client;
-use crate::modes::Modes;
 use crate::server::run_server;
 use crate::types::message::Message;
+use types::modes::Modes;
 
 fn main() {
     let mut args = std::env::args();
@@ -71,7 +71,7 @@ fn main() {
 }
 
 fn print_help_and_exit() -> ! {
-    println!("lan-chat – A simple TUI LAN messenger");
+    println!("lan-chat – A simple CLI LAN messenger");
     println!("Message Version: {}", Message::MESSAGE_VERSION);
 
     println!("Usage: lan-chat <flag> <port|ip:port>");
