@@ -13,60 +13,37 @@ mod helpers;
 mod message;
 mod args;
 
+use crate::args::{ClientCommand, Command, ServerCommand};
+
 pub const DEFAULT_PORT: u16 = 42003;
 pub const PROTOCOL_VERSION: u16 = 1;
 
 fn main() {
-    let mut args = std::env::args();
-    let _ = args.next();
+    let command = args::parse(std::env::args().skip(1));
 
-    let mode_arg = args
-        .next()
-        .unwrap_or_else(|| "-h".to_string());
-
-    let ip_and_or_port_arg = args
-        .next()
-        .unwrap_or_default();
-
-    let mode = match mode_arg.as_str() {
-        "-h" | "--help" => {
-            help_root();
-            std::process::exit(0);
-        }
-        "-v" | "--version" => {
-            println!("Protocol Version: {}", PROTOCOL_VERSION);
-            std::process::exit(0);
-        },
-        "-c" | "--client" => 0,
-        "-s" | "--server" => 1,
-        _ => {
-            if mode_arg.is_empty() {
-                help_root();
-                std::process::exit(0);
-            }
-
-            eprintln!("Error: invalid or unknown argument: {}", mode_arg);
-
+    match command {
+        Err(e) => {
+            eprintln!("{}", e);
             std::process::exit(1);
         }
-    };
+        Ok(Command::Help) => help_root(),
+        Ok(Command::Version) => println!("Protocol Version: {}", PROTOCOL_VERSION),
 
-    if let Err(e) = match mode {
-        0 => {
-            let address = match ip_and_or_port_arg.contains(":") {
-                true => ip_and_or_port_arg.as_str(),
-                false => &format!("{}:{}", ip_and_or_port_arg, DEFAULT_PORT)
-            };
-            client::net::connect::connect(address)
+        Ok(Command::Client(cmd)) => match cmd {
+            ClientCommand::Help => help_client(),
+            ClientCommand::List => todo!("client list"),
+            ClientCommand::Add { name } => todo!("client add"),
+            ClientCommand::Connect { name } => todo!("client connect"),
         }
-        _ => {
-            let port = ip_and_or_port_arg.parse::<u16>().unwrap_or(DEFAULT_PORT);
-            server::server::run_server(port)
+
+        Ok(Command::Server(cmd)) => match cmd {
+            ServerCommand::Help => help_server(),
+            ServerCommand::List => todo!("server list"),
+            ServerCommand::ShowKey { name } => todo!("server showkey"),
+            ServerCommand::New { name } => todo!("server new"),
+            ServerCommand::Start { name } => todo!("server start")
         }
-    } {
-        eprintln!("Error: {}", e);
-        std::process::exit(1);
-    }
+    };
 }
 
 fn help_root() {
@@ -110,7 +87,7 @@ fn help_server() {
 
         Options:
             --list      Output a list of available servers
-            --new       Add a server with the given name, will prompt
+            --new       Add a server with the given name
             --show-key  Print the given server's encryption key as text
                         and as a QR code
             --help      Show this message

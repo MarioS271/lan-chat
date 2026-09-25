@@ -6,3 +6,5 @@
 pub(crate) mod net;
 pub(crate) mod ui;
 pub(crate) mod session_info;
+
+pub(crate) use net::connect::connect;
