@@ -13,37 +13,86 @@ mod helpers;
 mod message;
 mod args;
 
+use qrcode::QrCode;
+use qrcode::render::unicode;
 use crate::args::{ClientCommand, Command, ServerCommand};
 
-pub const DEFAULT_PORT: u16 = 42003;
 pub const PROTOCOL_VERSION: u16 = 1;
+pub const DEFAULT_PORT: u16 = 42003;
 
 fn main() {
     let command = args::parse(std::env::args().skip(1));
 
-    match command {
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }
-        Ok(Command::Help) => help_root(),
-        Ok(Command::Version) => println!("Protocol Version: {}", PROTOCOL_VERSION),
+    let run = || -> Result<(), String> {
+        match command? {
+            Command::Help => Ok(help_root()),
+            Command::Version => Ok(println!("Protocol Version: {}", PROTOCOL_VERSION)),
 
-        Ok(Command::Client(cmd)) => match cmd {
-            ClientCommand::Help => help_client(),
-            ClientCommand::List => todo!("client list"),
-            ClientCommand::Add { name } => todo!("client add"),
-            ClientCommand::Connect { name } => todo!("client connect"),
-        }
+            Command::Client(cmd) => match cmd {
+                ClientCommand::Help => Ok(help_client()),
+                ClientCommand::List => {
+                    let config = config::client::load()?;
 
-        Ok(Command::Server(cmd)) => match cmd {
-            ServerCommand::Help => help_server(),
-            ServerCommand::List => todo!("server list"),
-            ServerCommand::ShowKey { name } => todo!("server showkey"),
-            ServerCommand::New { name } => todo!("server new"),
-            ServerCommand::Start { name } => todo!("server start")
+                    if !config.servers.is_empty() {
+                        println!("Known Servers:");
+                    } else {
+                        println!("No servers currently known");
+                        return Ok(());
+                    }
+
+                    for server in config.servers {
+                        println!("  {} at {}", server.name, server.address);
+                    }
+
+                    Ok(())
+                },
+                ClientCommand::Add { name } => todo!("client add"),
+                ClientCommand::Connect { name } => todo!("client connect"),
+            }
+
+            Command::Server(cmd) => match cmd {
+                ServerCommand::Help => Ok(help_server()),
+                ServerCommand::List => {
+                    let config = config::server::load()?;
+
+                    if !config.servers.is_empty() {
+                        println!("Existing Servers:");
+                    } else {
+                        println!("No servers exist");
+                        return Ok(());
+                    }
+
+                    for server in config.servers {
+                        println!("  {} on port {}", server.name, server.port);
+                    }
+
+                    Ok(())
+                },
+                ServerCommand::ShowKey { name } => {
+                    let config = config::server::load()?;
+                    let server = config.servers.iter()
+                        .find(|server| server.name == name)
+                        .ok_or(format!("Server '{}' not found", name))?;
+
+                    let qr_code = QrCode::new(server.key.as_bytes())
+                        .map_err(|e| format!("Could not generate QR code: {}", e))?;
+                    let qr_image = qr_code.render::<unicode::Dense1x2>().build();
+
+                    println!("Key of {}: {}", server.name, server.key);
+                    println!("{}", qr_image);
+
+                    Ok(())
+                },
+                ServerCommand::New { name } => todo!("server new"),
+                ServerCommand::Start { name } => todo!("server start")
+            }
         }
     };
+
+    if let Err(e) = run() {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
 }
 
 fn help_root() {

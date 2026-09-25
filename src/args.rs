@@ -29,6 +29,9 @@ fn parse_client(args: impl Iterator<Item = String>) -> Result<ClientCommand, Str
         }
     }
 
+    if name.is_empty() && !flag_add {
+        return Ok(ClientCommand::Help);
+    }
     if name.is_empty() {
         return Err("Missing 'name' argument".to_string());
     }
@@ -56,6 +59,9 @@ fn parse_server(args: impl Iterator<Item = String>) -> Result<ServerCommand, Str
         }
     }
 
+    if name.is_empty() && !flag_new && !flag_show_key {
+        return Ok(ServerCommand::Help);
+    }
     if name.is_empty() {
         return Err("Missing 'name' argument".to_string());
     }
