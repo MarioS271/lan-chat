@@ -3,7 +3,6 @@
 //!
 //! Authors: MarioS271
 
-pub(crate) mod client;
-pub(crate) mod tui;
-mod state;
-mod receive;
+pub(crate) mod net;
+pub(crate) mod ui;
+pub(crate) mod session_info;

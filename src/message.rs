@@ -3,8 +3,8 @@
 //!
 //! Authors: MarioS271
 
+use crate::client::session_info::SessionInfo;
 use crate::helpers::get_timestamp;
-use crate::types::session_info::SessionInfo;
 use std::borrow::Cow;
 
 pub enum Message {
@@ -106,7 +106,7 @@ impl ChatMessage {
 
         let timestamp = u64::from_be_bytes(buffer[..8].try_into().unwrap());
         let sender_name = buffer[8..8 + SessionInfo::MAX_NAME_LEN].try_into().unwrap();
-        let content = buffer[Self::METADATA_SIZE..].to_vec();
+        let content = buffer[Self::METADATA_SIZE..Self::METADATA_SIZE].to_vec();
 
         Ok(Self {
             timestamp,

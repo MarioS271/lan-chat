@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
-//! Main Function
+//! Program Entrypoint
 //!
 //! Authors: MarioS271
 
 mod client;
-mod types;
-mod framing;
-mod helpers;
+mod config;
+mod encryption;
 mod server;
 
-use client::client::run_client;
-use server::run_server;
-use types::modes::Modes;
+mod framing;
+mod helpers;
+mod message;
+mod args;
 
 pub const DEFAULT_PORT: u16 = 42003;
 pub const PROTOCOL_VERSION: u16 = 1;
@@ -29,16 +29,20 @@ fn main() {
         .unwrap_or_default();
 
     let mode = match mode_arg.as_str() {
-        "-h" | "--help" => print_help_and_exit(),
+        "-h" | "--help" => {
+            help_root();
+            std::process::exit(0);
+        }
         "-v" | "--version" => {
             println!("Protocol Version: {}", PROTOCOL_VERSION);
             std::process::exit(0);
         },
-        "-c" | "--client" => Modes::Client,
-        "-s" | "--server" => Modes::Server,
+        "-c" | "--client" => 0,
+        "-s" | "--server" => 1,
         _ => {
             if mode_arg.is_empty() {
-                print_help_and_exit();
+                help_root();
+                std::process::exit(0);
             }
 
             eprintln!("Error: invalid or unknown argument: {}", mode_arg);
@@ -48,16 +52,16 @@ fn main() {
     };
 
     if let Err(e) = match mode {
-        Modes::Client => {
+        0 => {
             let address = match ip_and_or_port_arg.contains(":") {
                 true => ip_and_or_port_arg.as_str(),
                 false => &format!("{}:{}", ip_and_or_port_arg, DEFAULT_PORT)
             };
-            run_client(address)
+            client::net::connect::connect(address)
         }
-        Modes::Server => {
+        _ => {
             let port = ip_and_or_port_arg.parse::<u16>().unwrap_or(DEFAULT_PORT);
-            run_server(port)
+            server::server::run_server(port)
         }
     } {
         eprintln!("Error: {}", e);
@@ -65,17 +69,50 @@ fn main() {
     }
 }
 
-fn print_help_and_exit() -> ! {
-    println!("lan-chat – A simple CLI LAN messenger");
-    println!("Protocol Version: {}\n", PROTOCOL_VERSION);
+fn help_root() {
+    println!(indoc::indoc! {r#"
+        Usage: simple-chat <subcommand> [options]
 
-    println!("Usage: lan-chat <flag> <port|ip:port>");
-    println!("  -h --help: Print this message");
-    println!("  -v --version: Output this build's protocol version");
-    println!("  -c --client: Run this instance as a client which can connect to a server instance in the same LAN");
-    println!("               You also need to supply a <ip:port> pair to be able to connect to a server.");
-    println!("  -s --server: Run this instance as a server anyone in the same LAN can connect to");
-    println!("               You also need to supply a <port> on which clients will connect.");
+        Subcommands:
+            client      Connect to or register a server
+            server      Run or manage a server instance
 
-    std::process::exit(0);
+        Options:
+            --help      Show this message
+            --version   Show this binary's protocol version
+
+        Run 'simple-chat <subcommand> --help' for
+        subcommand-specific help.
+    "#});
+}
+fn help_client() {
+    println!(indoc::indoc! {r#"
+        Usage: simple-chat client <name> [options]
+
+        Arguments:
+            name        Name of the server to connect to/to add
+                        (prompted if omitted)
+
+        Options:
+            --list      Output a list of available servers
+            --add       Add a server with the given name, will prompt
+                        for the encryption key (and name if omitted)
+            --help      Show this message
+    "#});
+}
+fn help_server() {
+    println!(indoc::indoc! {r#"
+        Usage: simple-chat server <name> [options]
+
+        Arguments:
+            name        Name of the server to/to add
+                        (prompted if omitted)
+
+        Options:
+            --list      Output a list of available servers
+            --new       Add a server with the given name, will prompt
+            --show-key  Print the given server's encryption key as text
+                        and as a QR code
+            --help      Show this message
+    "#});
 }

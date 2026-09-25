@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
-//! Client Mode Logic
+//! Client Connect and Handshake
 //!
 //! Authors: MarioS271
 
-use crate::client::tui::init_tui;
-use crate::types::session_info::SessionInfo;
+use crate::client::session_info::SessionInfo;
+use crate::client::ui::tui::init_tui;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 
-pub fn run_client(address: &str) -> std::io::Result<()> {
+pub fn connect(address: &str) -> std::io::Result<()> {
     println!("Running as client");
 
     let mut session_info = SessionInfo::default();

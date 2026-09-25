@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
-//! Client TUI Logic
+//! Main TUI Logic
 //!
 //! Authors: MarioS271
 
-use crate::client::receive::receive_thread;
-use crate::client::state::AppState;
+use crate::client::net::receive::receive_thread;
+use crate::client::session_info::SessionInfo;
+use crate::client::ui::state::ClientState;
 use crate::framing;
-use crate::types::message::{ChatMessage, Formatted, Message};
-use crate::types::session_info::SessionInfo;
+use crate::message::{ChatMessage, Formatted, Message};
 use ratatui::crossterm;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::layout::Constraint;
@@ -32,7 +32,7 @@ pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Re
         ratatui::backend::CrosstermBackend::new(std::io::stdout())
     )?;
 
-    let state = Arc::new(Mutex::new(AppState {
+    let state = Arc::new(Mutex::new(ClientState {
         name: session_info.name_as_str().to_string(),
         remote: stream.peer_addr()?.to_string(),
         messages: Vec::new(),
@@ -93,7 +93,7 @@ pub fn init_tui(session_info: SessionInfo, mut stream: TcpStream) -> std::io::Re
     }
 }
 
-pub fn render_tui(frame: &mut ratatui::Frame, state: &AppState) {
+pub fn render_tui(frame: &mut ratatui::Frame, state: &ClientState) {
     let areas = ratatui::layout::Layout::vertical([
         Constraint::Length(1),
         Constraint::Min(0),

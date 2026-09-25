@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
-//! Client App State Struct
+//! Client State Struct
 //!
 //! Authors: MarioS271
 
-use crate::types::message::Message;
+use crate::message::Message;
 
-pub struct AppState {
+pub struct ClientState {
     pub name: String,
     pub remote: String,
     pub messages: Vec<Message>,

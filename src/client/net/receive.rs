@@ -3,16 +3,16 @@
 //!
 //! Authors: MarioS271
 
-use crate::client::state::AppState;
-use crate::client::tui::end_raw_mode;
+use crate::client::ui::state::ClientState;
+use crate::client::ui::tui::end_raw_mode;
 use crate::framing;
-use crate::types::message::Message;
+use crate::message::Message;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
 const LOG_PREFIX: &str = "(receive thread)";
 
-pub fn receive_thread(mut read_stream: TcpStream, state_recv: Arc<Mutex<AppState>>) {
+pub fn receive_thread(mut read_stream: TcpStream, state_recv: Arc<Mutex<ClientState>>) {
     loop {
         match framing::read_message(&mut read_stream) {
             Ok(data) => {

@@ -607,14 +607,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf36173d4167ed999940f804952e6b08197cae5ad5d572eb4db150ce8ad5d58f"
 
 [[package]]
-name = "lan-chat"
-version = "1.0.0"
-dependencies = [
- "chrono",
- "ratatui",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1273,6 +1265,15 @@ checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
 dependencies = [
  "errno",
  "libc",
+]
+
+[[package]]
+name = "simple-chat"
+version = "1.0.0"
+dependencies = [
+ "chrono",
+ "indoc",
+ "ratatui",
 ]
 
 [[package]]

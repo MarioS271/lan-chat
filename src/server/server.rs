@@ -3,8 +3,8 @@
 //!
 //! Authors: MarioS271
 
-use crate::types::message::{Message, SystemMessage};
-use crate::types::session_info::SessionInfo;
+use crate::client::session_info::SessionInfo;
+use crate::message::{Message, SystemMessage};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
@@ -47,6 +47,8 @@ fn handle_client(mut stream: TcpStream, clients: ClientList) -> std::io::Result<
 
     let mut client_name = [0u8; SessionInfo::MAX_NAME_LEN];
     stream.read_exact(&mut client_name)?;
+
+
 
     let peer_addr = stream.peer_addr()?;
     let write_stream = stream.try_clone()?;
